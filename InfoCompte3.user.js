@@ -3,7 +3,7 @@
 // @namespace   2c7e63c68903f0a8b63d7bfdd749d871
 // @description    InfoCompte
 // @vOGgame        7.0.0
-// @version        3.12.30
+// @version        3.13.0
 // @author         Vulca, benneb, GeneralAnasazi
 // @grant		   GM_getValue
 // @grant		   GM_setValue
@@ -12,15 +12,15 @@
 // @grant		   GM_xmlhttpRequest
 // @license MIT
 
-// updateURL https://openuserjs.org/install/benneb/InfoCompte3.user.js
-// downloadURL https://openuserjs.org/install/benneb/InfoCompte3.user.js
+// @updateURL https://openuserjs.org/install/benneb/InfoCompte3.user.js
+// @downloadURL https://openuserjs.org/install/benneb/InfoCompte3.user.js
 
 // @include     	*.ogame*gameforge.com/game/index.php?page=*
 
 // @exclude        *.ogame*gameforge.com/game/index.php?page=displayMessageNewPage*
 // ==/UserScript==
 
-var Version = '3.12.30';
+var Version = '3.13.0';
 //var numberUserscript = '133137';
 
 var start_time = (new Date()).getTime();
@@ -45,7 +45,7 @@ var planetType = document.getElementsByName('ogame-planet-type')[0].content;
 
 		if(typeof GM_getResourceURL === 'function')
 		{
-			Tamper =  true; // TamperMonkey
+			Tamper = true; // TamperMonkey
 
 		}
 		function GM_getValue(key,defaultVal)
@@ -176,43 +176,49 @@ function InfoCompteScript()
 			if(options.generale.affCout)
 			{
                 var temps;
-				if (bati) {
-					temps = ((coutBati[f][0]+coutBati[f][1])*Math.pow(exposant[f],niveau)/ 5) * ( 2 / (1 + parseInt(BatSta[numeroplanete].split('|')[0]))) * Math.pow(0.5,parseInt(BatSta[numeroplanete].split('|')[5]))/speedUni;
+                if (coutBati[f]) {
+                    if (bati) {
+                        temps = ((coutBati[f][0]+coutBati[f][1])*Math.pow(exposant[f],niveau)/ 5) * ( 2 / (1 + parseInt(BatSta[numeroplanete].split('|')[0]))) * Math.pow(0.5,parseInt(BatSta[numeroplanete].split('|')[5]))/speedUni;
+                    } else {
+                        niveau =LevelsTech[f];
+
+                        temps = ((coutBati[f][0]+coutBati[f][1])*Math.pow(exposant[f],niveau)) / (1 + laboTot)/speedUni*coefIng;
+                    }
+                    //iHtml = '<div style="width:66px;background-color : rgba(0, 0, 0, 0.6);">'+text.tag.m.slice(0,1)+':'+cut(coutBati[f][0]*Math.pow(exposant[f],niveau))+'</div>'+
+                    var affcout = '<div style="width:66px;background-color : rgba(0, 0, 0, 0.6);">'+text.tag.m.slice(0,1)+':'+cut(coutBati[f][0]*Math.pow(exposant[f],niveau))+'</div>'+
+                        '<div style="width:66px;background-color : rgba(0, 0, 0, 0.6);">'+text.tag.c.slice(0,1)+':'+cut(coutBati[f][1]*Math.pow(exposant[f],niveau))+'</div>'+
+                        '<div style="width:55px;background-color : rgba(0, 0, 0, 0.6);">'+text.tag.d.slice(0,1)+':'+cut(coutBati[f][2]*Math.pow(exposant[f],niveau))+'</div>'+
+                        '<div style="width:50px;background-color : rgba(0, 0, 0, 0.6);">'+cutHeure(temps)+'</div>';
+
+                    var sp1 = document.createElement("div");
+                    sp1.setAttribute("id", "prix"+i);
+                    var anti_text = document.getElementById("technologies").getElementsByClassName('ago_items_text');
+                    if( anti_text.length > 0)
+                    {
+                        for(var anti = 0 ; anti < anti_text.length ; anti++)
+                        {
+                            anti_text[anti].style.top = "0px";
+                        }
+                        sp1.setAttribute("style", "color:white; text-align:left; position:relative; top:19px;  font-size:11px");
+                    }
+                    else
+                    {
+                        sp1.setAttribute("style", "color:white; text-align:left; position:relative; font-size:11px");
+                    }
+
+                    var elements = document.getElementsByClassName('icon sprite');
+                    if (elements.length > i) {
+                        var sp2 = elements[i]; //ecke
+                        parentDiv = sp2//sp2.parentNode;
+                        parentDiv.insertBefore(sp1, sp2.nextSibling);
+                        var tableau = document.createElement("div");
+                        tableau.innerHTML = affcout + '<br/>';
+
+                        document.getElementById("prix"+i).appendChild(tableau);
+                    }
                 } else {
-					niveau =LevelsTech[f];
-
-					temps = ((coutBati[f][0]+coutBati[f][1])*Math.pow(exposant[f],niveau)) / (1 + laboTot)/speedUni*coefIng;
-				}
-				//iHtml = '<div style="width:66px;background-color : rgba(0, 0, 0, 0.6);">'+text.tag.m.slice(0,1)+':'+cut(coutBati[f][0]*Math.pow(exposant[f],niveau))+'</div>'+
-				var affcout = '<div style="width:66px;background-color : rgba(0, 0, 0, 0.6);">'+text.tag.m.slice(0,1)+':'+cut(coutBati[f][0]*Math.pow(exposant[f],niveau))+'</div>'+
-						  '<div style="width:66px;background-color : rgba(0, 0, 0, 0.6);">'+text.tag.c.slice(0,1)+':'+cut(coutBati[f][1]*Math.pow(exposant[f],niveau))+'</div>'+
-						  '<div style="width:55px;background-color : rgba(0, 0, 0, 0.6);">'+text.tag.d.slice(0,1)+':'+cut(coutBati[f][2]*Math.pow(exposant[f],niveau))+'</div>'+
-						  '<div style="width:50px;background-color : rgba(0, 0, 0, 0.6);">'+cutHeure(temps)+'</div>';
-
-				var sp1 = document.createElement("div");
-				sp1.setAttribute("id", "prix"+i);
-				var anti_text = document.getElementById("technologies").getElementsByClassName('ago_items_text');
-				if( anti_text.length > 0)
-				{
-					for(var anti = 0 ; anti < anti_text.length ; anti++)
-					{
-						anti_text[anti].style.top = "0px";
-					}
-					sp1.setAttribute("style", "color:white; text-align:left; position:relative; top:19px;  font-size:11px");
-				}
-				else
-				{
-					sp1.setAttribute("style", "color:white; text-align:left; position:relative; font-size:11px");
-				}
-
-				var sp2 = document.getElementsByClassName('icon sprite')[i]; //ecke
-
-				parentDiv = sp2//sp2.parentNode;
-				parentDiv.insertBefore(sp1, sp2.nextSibling);
-				var tableau = document.createElement("div");
-				tableau.innerHTML = affcout + '<br/>';
-
-				document.getElementById("prix"+i).appendChild(tableau);
+                    console.log('ERROR: coutBati[' + i + '] does not exist');
+                }
 			}
 		}
 
@@ -612,17 +618,17 @@ function InfoCompteScript()
                 console.log(nom_vaisseau);
             }
 
-            for (var i = 0; i <  10; i++)
+            for (i = 0; i < 10; i++)
             {
-				nom_def      += trim (nom [nom.length - 20 + i * 2].text) + ';';
+				nom_def += trim (nom [nom.length - 20 + i * 2].text) + ';';
             }
 
 			var serveur_split = url.split('/')[2].split('.');
-			var domain_   = '.'+ serveur_split[1]+"."+serveur_split[2];
+			var domain_ = '.' + serveur_split[1] + "." + serveur_split[2];
 
 			if( serveur_split.length == 4 )
 			{
-				domain_ += "."+serveur_split[3];
+				domain_ += "." + serveur_split[3];
 			}
 			GM_setValue (nomScript +domain_, nom_vaisseau+'|'+nom_def+'|');
             //console.log(nom_vaisseau+'|'+nom_def);
@@ -2310,9 +2316,9 @@ function InfoCompteScript()
 				if (!LUNE) 		// Si planete
 				{
 
-					var coutBati = new Array(new Array(0.4,0.12,0.2),new Array(0.4,0.2,0.1),new Array(0.2,0.4,0.2),new Array(20,40,0),new Array(20,20,1),new Array(1000,500,100),new Array(0,50,100));
+					var coutBati = new Array(new Array(0.4,0.12,0.2),new Array(0.4,0.2,0.1),new Array(0.2,0.4,0.2),new Array(20,40,0),new Array(20,20,1),new Array(1000,500,100),new Array(0,50,100), new Array(0.2,0,0.05));
 
-					var nom_bat = new Array('rob','cspa','lab', 'depo', 'silo', 'nan',  'ter' );
+					var nom_bat = new Array('rob','cspa','lab', 'depo', 'silo', 'nan',  'ter', 'dock' );
 				}
 				else // Si Lune
 				{
