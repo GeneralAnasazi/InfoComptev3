@@ -3,7 +3,7 @@
 // @namespace   2c7e63c68903f0a8b63d7bfdd749d871
 // @description    InfoCompte
 // @vOGgame        7.0.0
-// @version        4.0.0
+// @version        4.0.1
 // @author         Vulca, benneb, GeneralAnasazi
 // @grant		   GM_getValue
 // @grant		   GM_setValue
@@ -20,7 +20,7 @@
 // @exclude        *.ogame*gameforge.com/game/index.php?page=displayMessageNewPage*
 // ==/UserScript==
 
-var Version = '3.13.0';
+var Version = '4.0.1';
 //var numberUserscript = '133137';
 
 var start_time = (new Date()).getTime();
@@ -97,7 +97,7 @@ var planetType = document.getElementsByName('ogame-planet-type')[0].content;
 
 			var aff_option ='<span class="menu_icon"><a id="iconeUpdate" href='+(AJours ? adresse_forum : "https://openuserjs.org/scripts/benneb/InfoCompte3" )+' target="blank_" ><img class="mouseSwitch" src="'+(AJours?icone:"http://vulca.projet-alternative.fr/images/caution.gif")+'" rel="'+(AJours?icone2:"http://vulca.projet-alternative.fr/images/caution.gif")+'" height="29" width="38"></span><a class="menubutton "';
 				aff_option += 'href="'+url+'&infocompte=scriptOptions" accesskey="" target="_self">';
-				aff_option += '<span class="textlabel">InfoCompte</span></a>';
+				aff_option += '<span class="textlabel">InfoCompte4</span></a>';
 
 			var tableau = document.createElement("li");
 			tableau.innerHTML = aff_option;
@@ -106,9 +106,6 @@ var planetType = document.getElementsByName('ogame-planet-type')[0].content;
 		}
 	}
 
-    if(document.getElementsByName('ogame-version')[0]) {
-        checkVersionAndDisplayMenu();
-    }
 
 	// ******************************************************************************************************
 	// ****************************************** InfoCompte Script *****************************************
@@ -5197,4 +5194,9 @@ function InfoCompteScript()
 
 	}
 }
-InfoCompteScript();
+
+if(ogameVersion.substr(0, 1) == '7') {
+    checkVersionAndDisplayMenu();
+    InfoCompteScript();
+}
+
