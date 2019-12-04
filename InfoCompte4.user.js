@@ -3,7 +3,7 @@
 // @namespace   2c7e63c68903f0a8b63d7bfdd749d871
 // @description    InfoCompte
 // @vOGgame        7.0.0
-// @version        4.0.1
+// @version        4.0.2
 // @author         Vulca, benneb, GeneralAnasazi
 // @grant		   GM_getValue
 // @grant		   GM_setValue
@@ -20,7 +20,7 @@
 // @exclude        *.ogame*gameforge.com/game/index.php?page=displayMessageNewPage*
 // ==/UserScript==
 
-var Version = '4.0.1';
+var Version = '4.0.2';
 //var numberUserscript = '133137';
 
 var start_time = (new Date()).getTime();
@@ -581,8 +581,9 @@ function InfoCompteScript()
                             if (onConstructed) {
                                 onConstructed(f);
                             }
-                            if (affCout)
+                            if (affCout) {
                                 afficheCout(f, f, true);
+                            }
                         }
                     }
                     result.push(niveau);
@@ -1992,10 +1993,10 @@ function InfoCompteScript()
 				var listeNiv ='';
 				var resEncontruction = -1;
 
-				for (var f=0; f<prixInitial.length ; f++)
-				{
-                    if (f < niveaux.length) {
-                        if (version_mayor == 6) {
+                if (version_mayor == 6) {
+                    for (var f=0; f<prixInitial.length ; f++)
+                    {
+                        if (f < niveaux.length) {
                             if(typeof(niveaux[f].getElementsByClassName('textlabel')[0])=="undefined")
                             {
 
@@ -2012,24 +2013,28 @@ function InfoCompteScript()
                                 for(var k=0; k< span.length ; k++)
                                 {	niveau = trim(niveau.replace( span[k].textContent, ""));}
                             }
-                        } else {
-                            niveau = getSpanValueVersion(niveaux[f]);
+
+                            LevelsTech[f] = parseInt(niveau);
+
+                            pointRecherche += Math.floor(prixInitial[f]*(Math.pow(exposant[f],LevelsTech[f])-1)/(exposant[f]-1)*1000)/1000;
+
+                            listeNiv += parseInt(LevelsTech[f])+';';
                         }
-
-                        LevelsTech[f] = parseInt(niveau);
-
-                        pointRecherche += Math.floor(prixInitial[f]*(Math.pow(exposant[f],LevelsTech[f])-1)/(exposant[f]-1)*1000)/1000;
-
-                        listeNiv += parseInt(LevelsTech[f])+';';
                     }
-				}
+                } else {
+                    LevelsTech = getValues('icons', 'level', false, function(i) { resEncontruction = i; });
+                    for (i = 0; i < LevelsTech.length; i++) {
+                        pointRecherche += Math.floor(prixInitial[i]*(Math.pow(exposant[i],LevelsTech[i])-1)/(exposant[i]-1)*1000)/1000;
+                        listeNiv += parseInt(LevelsTech[i])+';';
+                    }
+                }
 
 				// Calcul labo equivalent
 				var listLab = new Array();
 				var laboTot = parseInt(BatSta[numeroplanete].split('|')[2]);
 
-				var f=0;
-				for(var i=0; i< BatSta.length-1 ; i++)
+				f = 0;
+				for(i = 0; i< BatSta.length-1 ; i++)
 				{
 					if(i != numeroplanete && BatSta[i].split('|')[2] != '')
 					{
@@ -2044,6 +2049,7 @@ function InfoCompteScript()
 
 				listLab = listLab.sort(sortfunction);
 
+                // Intergalactic Research Network
 				for(var i=0; i< LevelsTech[11]; i++)
 				{
 					if (  (parseFloat(listLab[listLab.length-i-1]) == parseInt(listLab[listLab.length-i-1])) && !isNaN(listLab[listLab.length-i-1])  )
@@ -2088,9 +2094,9 @@ function InfoCompteScript()
 				}
 
 				var PointsTech =0;
-				for (var i=0 ; i<LevelsTech.length ; i++)
+				for (i = 0 ; i<LevelsTech.length ; i++)
 				{
-					PointsTech+=parseInt(LevelsTech[i]);
+					PointsTech += parseInt(LevelsTech[i]);
 				}
 
 				if(options.generale.Techno_utile)
@@ -2531,7 +2537,6 @@ function InfoCompteScript()
                 niv = getValues('icons', 'amount');
 
 				var listeFlotte = niv.join('|')+'|';
-                console.log(listeFlotte);
 
 				flotte[numeroplanete+1] = listeFlotte;
 				if(options.generale.saveFleet) GM_setValue(nomScript+"flotte"+coordPM+serveur,flotte.join(";"));
@@ -2869,7 +2874,7 @@ function InfoCompteScript()
 				{
 					DATA.planet[i] =
 					{
-						moon : BatSta[i].split('|')[10],
+						moon : BatSta[i].split('|')[11],
 						building :
 						{
 							'mmet': BatRes[i].split('|')[0] ,
@@ -4368,7 +4373,7 @@ function InfoCompteScript()
 
 					for (var i=0 ; i< nbPlanet; i++)
 					{
-						if(DATA.planet[i].moon=='false')
+                        if(DATA.planet[i].moon=='false')
 						{
 							supp_metal_plasma   +=  prodMetalbase  ( DATA.planet[i].building.mmet, speedUni )/100;
 							supp_cristal_plasma +=  prodCristalbase( DATA.planet[i].building.mcri, speedUni )*0.66/100;
