@@ -3,7 +3,7 @@
 // @namespace   2c7e63c68903f0a8b63d7bfdd749d871
 // @description    InfoCompte
 // @vOGgame        7.0.0
-// @version        4.0.2
+// @version        4.0.3
 // @author         Vulca, benneb, GeneralAnasazi
 // @grant		   GM_getValue
 // @grant		   GM_setValue
@@ -20,7 +20,7 @@
 // @exclude        *.ogame*gameforge.com/game/index.php?page=displayMessageNewPage*
 // ==/UserScript==
 
-var Version = '4.0.2';
+var Version = '4.0.3';
 //var numberUserscript = '133137';
 
 var start_time = (new Date()).getTime();
@@ -150,6 +150,19 @@ function InfoCompteScript()
             } else {
                 return parseInt(span.getAttribute('data-value'));
             }
+        }
+
+        function getCharacterClass() {
+            var result = 'none';
+            var div = document.getElementById('characterclass');
+            if (div.getElementsByClassName('sprite characterclass medium miner').length > 0) {
+                result = 'collector';
+            }
+            return result;
+        }
+
+        function getCollectorMultiplier() {
+            return getCharacterClass() == 'collector' ? 0.25 : 1;
         }
 
         function cut(n)
@@ -538,20 +551,20 @@ function InfoCompteScript()
 
 		function prodMetal(mm,speed, lvlplasma, geologue, booster){
 			var base = prodMetalbase(mm, speed);
-			return Math.round(base*geologue)  +  Math.round(base*lvlplasma/100) + Math.round(base*booster/100);
+			return Math.round(base*geologue)  +  Math.round(base*lvlplasma/100) + Math.round(base*booster/100) + Math.round(base * getCollectorMultiplier());
 		}
 
 		function prodCristal(mc,speed, lvlplasma, geologue, booster)
 		{
 			var base = prodCristalbase(mc, speed);
-			return Math.round(base*geologue)  + Math.round(base*lvlplasma*0.66/100) + Math.round(base*booster/100);
+			return Math.round(base*geologue)  + Math.round(base*lvlplasma*0.66/100) + Math.round(base*booster/100) + Math.round(base * getCollectorMultiplier());
 		}
 
 		function prodDeut(md,speed, lvlplasma, temperature, geologue, booster)
 		{
 			var base = prodDeutbase(md, speed, temperature);
 			//console.log(md,speed+"--"+lvlplasma+"--"+temperature+"--"+geologue+"--"+booster+"--"+Math.round(base*geologue)+"--"+Math.round(base*lvlplasma*0.33/100)+"--"+Math.round(base*booster/100));
-			return Math.round(base*geologue) +  Math.round(base*lvlplasma*0.33/100) + Math.round(base*booster/100);
+			return Math.round(base*geologue) +  Math.round(base*lvlplasma*0.33/100) + Math.round(base*booster/100) + Math.round(base * getCollectorMultiplier());
 		}
 
         function getValues(className, innerClassName, affCout, onInConstruction, onConstructed) {
@@ -2179,9 +2192,9 @@ function InfoCompteScript()
 			else if ((version_mayor == 6) && (url.indexOf(version_page_ident + 'ressources',0)>=0) ||
                     (version_mayor > 6) && (url.indexOf(version_page_ident + 'supplies',0)>=0))
 			{
-				var coutBati = new Array(new Array(0.06,0.015,0),new Array(0.048,0.024,0),new Array(0.225,0.075,0),new Array(0.075,0.030,0),new Array(0.9,0.360,0.18),new Array(0,2,0.5),new Array(1,0,0),new Array(1,0.5,0),new Array(1,1,0),new Array(2.645,0,0),new Array(2.645,1.322,0),new Array(2.645,2.645,0));
-				var nom_bat = new Array('mmet', 'mcri' , 'mdet', 'ces', 'cef','sat', 'hmet', 'hcri', 'hdet');
-				var exposant = new Array(1.5,1.6,1.5,1.5,1.8,1,2,2,2, 2.3, 2.3, 2.3);
+				var coutBati = new Array(new Array(0.06,0.015,0),new Array(0.048,0.024,0),new Array(0.225,0.075,0),new Array(0.075,0.030,0),new Array(0.9,0.360,0.18),new Array(0,2,0.5),new Array(2,2,1),new Array(1,0,0),new Array(1,0.5,0),new Array(1,1,0),new Array(2.645,0,0),new Array(2.645,1.322,0),new Array(2.645,2.645,0));
+				var nom_bat = new Array('mmet', 'mcri' , 'mdet', 'ces', 'cef', 'sat', 'craw', 'hmet', 'hcri', 'hdet');
+				var exposant = new Array(1.5,1.6,1.5,1.5,1.8,1,1,2,2,2, 2.3, 2.3, 2.3);
 
 				var niv = [];
 				var batEncontruction = -1;
