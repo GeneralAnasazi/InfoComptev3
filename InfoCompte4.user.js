@@ -3,7 +3,7 @@
 // @namespace   2c7e63c68903f0a8b63d7bfdd749d871
 // @description    InfoCompte
 // @vOGgame        7.0.0
-// @version        4.0.3
+// @version        4.0.4
 // @author         Vulca, benneb, GeneralAnasazi
 // @grant		   GM_getValue
 // @grant		   GM_setValue
@@ -20,7 +20,7 @@
 // @exclude        *.ogame*gameforge.com/game/index.php?page=displayMessageNewPage*
 // ==/UserScript==
 
-var Version = '4.0.3';
+var Version = '4.0.4';
 //var numberUserscript = '133137';
 
 var start_time = (new Date()).getTime();
@@ -163,6 +163,10 @@ function InfoCompteScript()
 
         function getCollectorMultiplier() {
             return getCharacterClass() == 'collector' ? 0.25 : 1;
+        }
+
+        function getCrawlerMultiplier() {
+            return getCharacterClass() == 'collector' ? 0.0003 : 0.0002;
         }
 
         function cut(n)
@@ -549,22 +553,22 @@ function InfoCompteScript()
 			return 10 * (md) * (Math.pow(1.1,(md)) * (1.44 - (temperature * 0.004) ))*speed;
 		}
 
-		function prodMetal(mm,speed, lvlplasma, geologue, booster){
+		function prodMetal(mm, speed, lvlplasma, geologue, booster, crawler){
 			var base = prodMetalbase(mm, speed);
-			return Math.round(base*geologue)  +  Math.round(base*lvlplasma/100) + Math.round(base*booster/100) + Math.round(base * getCollectorMultiplier());
+			return Math.round(base*geologue)  +  Math.round(base*lvlplasma/100) + Math.round(base*booster/100) + Math.round(base * getCollectorMultiplier() + Math.round(base * getCrawlerMultiplier() * crawler));
 		}
 
-		function prodCristal(mc,speed, lvlplasma, geologue, booster)
+		function prodCristal(mc, speed, lvlplasma, geologue, booster, crawler)
 		{
 			var base = prodCristalbase(mc, speed);
-			return Math.round(base*geologue)  + Math.round(base*lvlplasma*0.66/100) + Math.round(base*booster/100) + Math.round(base * getCollectorMultiplier());
+			return Math.round(base*geologue)  + Math.round(base*lvlplasma*0.66/100) + Math.round(base*booster/100) + Math.round(base * getCollectorMultiplier() + Math.round(base * getCrawlerMultiplier() * crawler));
 		}
 
-		function prodDeut(md,speed, lvlplasma, temperature, geologue, booster)
+		function prodDeut(md, speed, lvlplasma, temperature, geologue, booster, crawler)
 		{
 			var base = prodDeutbase(md, speed, temperature);
 			//console.log(md,speed+"--"+lvlplasma+"--"+temperature+"--"+geologue+"--"+booster+"--"+Math.round(base*geologue)+"--"+Math.round(base*lvlplasma*0.33/100)+"--"+Math.round(base*booster/100));
-			return Math.round(base*geologue) +  Math.round(base*lvlplasma*0.33/100) + Math.round(base*booster/100) + Math.round(base * getCollectorMultiplier());
+			return Math.round(base*geologue) +  Math.round(base*lvlplasma*0.33/100) + Math.round(base*booster/100) + Math.round(base * getCollectorMultiplier() + Math.round(base * getCrawlerMultiplier() * crawler));
 		}
 
         function getValues(className, innerClassName, affCout, onInConstruction, onConstructed) {
@@ -575,6 +579,7 @@ function InfoCompteScript()
             for (var i = 0; i < elements.length; i++) {
                 var linkList = elements[i].getElementsByTagName('li');
                 for (var j = 0; j < linkList.length; j++) {
+                    niveau = 0;
                     var targetElements = linkList[j].getElementsByClassName('target' + innerClassName);
                     var innerElements;
                     if (targetElements.length > 0) { // in constuction
@@ -589,6 +594,9 @@ function InfoCompteScript()
                         }
                     } else {
                         innerElements = linkList[j].getElementsByClassName(innerClassName);
+                        if (innerElements.length === 0) {
+                            innerElements = linkList[j].getElementsByClassName('amount');
+                        }
                         if (innerElements.length > 0) {
                             niveau = parseInt(innerElements[0].getAttribute('data-value'));
                             if (onConstructed) {
@@ -2234,7 +2242,7 @@ function InfoCompteScript()
 				} */
                 niv = getValues('icons', 'level', true,
                                 function(i) { // en construction
-                                    if(i != 5) {
+                                    if ((i != 5) && (i != 6)) {
                                         batEncontruction = i;
                                     }
                                 });
@@ -2245,7 +2253,6 @@ function InfoCompteScript()
 
 				upsat[13]=niv[5];
 				flotte[numeroplanete+1] = upsat.join('|');
-
 				BatRes[numeroplanete] = nivPlanete;
 
 				GM_setValue(nomScript+"BatRes"+coordPM+serveur,BatRes.join(";"));
@@ -2885,9 +2892,10 @@ function InfoCompteScript()
 
 				for (var i=0 ; i< nbPlanet; i++)
 				{
+                    var batStaArr = BatSta[i].split('|');
 					DATA.planet[i] =
 					{
-						moon : BatSta[i].split('|')[11],
+						moon : batStaArr[batStaArr.length - 2],
 						building :
 						{
 							'mmet': BatRes[i].split('|')[0] ,
@@ -2902,9 +2910,9 @@ function InfoCompteScript()
 							'depo': BatSta[i].split('|')[3],
 							'cspa': BatSta[i].split('|')[1],
 							'rob': BatSta[i].split('|')[0],
-							'hmet': BatRes[i].split('|')[6],
-							'hcri': BatRes[i].split('|')[7],
-							'hdet': BatRes[i].split('|')[8],
+							'hmet': BatRes[i].split('|')[7],
+							'hcri': BatRes[i].split('|')[8],
+							'hdet': BatRes[i].split('|')[9],
 							'base':BatSta[i].split('|')[7],
 							'phal':BatSta[i].split('|')[8],
 							'port':BatSta[i].split('|')[9]
@@ -2937,7 +2945,8 @@ function InfoCompteScript()
 							'sat':BatRes[i].split('|')[5],//flotte[i+1].split('|')[13]
 							'dest':flotte[i+1].split('|')[11],
 							'rip':flotte[i+1].split('|')[12],
-							'traq':flotte[i+1].split('|')[13]
+							'traq':flotte[i+1].split('|')[13],
+                            'craw':BatRes[i].split('|')[6] // Crawler
 
 						},
 						booster:
@@ -2957,15 +2966,16 @@ function InfoCompteScript()
 						}
 					};
 
-					for(var n=0 ; n<nom_bat.length ; n++)
+                    var n;
+					for(n = 0 ; n<nom_bat.length ; n++)
 					{
 						if(isNaN(parseInt(DATA.planet[i].building[nom_bat[n]]))) DATA.planet[i].building[nom_bat[n]]='00';
 					}
-					for(var n=0 ; n<nom_def.length ; n++)
+					for(n = 0 ; n<nom_def.length ; n++)
 					{
 						if(isNaN(parseInt(DATA.planet[i].defense[nom_def[n]]))) DATA.planet[i].defense[nom_def[n]]='00';
 					}
-					for(var n=0 ; n<nom_flotte.length ; n++)
+					for(n = 0 ; n<nom_flotte.length ; n++)
 					{
 						if(isNaN(parseInt(DATA.planet[i].fleet[nom_flotte[n]]))) DATA.planet[i].fleet[nom_flotte[n]]='00';
 					}
@@ -3025,7 +3035,7 @@ function InfoCompteScript()
 							GM_setValue(nomScript+"boost"+coordPM+serveur,boost.join(';'));
 						}
 
-						DATA.planet[i].resource.prod.d = prodDeut(DATA.planet[i].building['mdet'],speedUni, Techno[4], tempM, Geolog, boost[i].split('|')[2]);
+						DATA.planet[i].resource.prod.d = prodDeut(DATA.planet[i].building['mdet'],speedUni, Techno[4], tempM, Geolog, boost[i].split('|')[2], DATA.planet[i].fleet['craw']);
 						//console.log("2 "+Techno[4]);
 
 						f++;
@@ -3184,9 +3194,12 @@ function InfoCompteScript()
 					'sat':flotte[0].split('|')[10],
 					'dest':flotte[0].split('|')[11],
 					'rip':flotte[0].split('|')[12],
-					'traq':flotte[0].split('|')[13]
+					'traq':flotte[0].split('|')[13],
+                    'craw':BatRes[0].split('|')[6]
 
 				};
+                //console.log(DATA.fleet);
+                //console.log(BatRes);
 
 
 				if (FireFox  || Tamper) unsafeWindow.ifcDATA = DATA;
@@ -3277,40 +3290,40 @@ function InfoCompteScript()
 				{
 					// ******************************Production********************************
 
-					DATA.planet[f].resource.prod.m = prodMetal(   DATA.planet[f].building['mmet'], speedUni, DATA.techno['plas'] , Geolog, boost[f].split('|')[0]);
-					DATA.planet[f].resource.prod.c = prodCristal( DATA.planet[f].building['mcri'], speedUni, DATA.techno['plas'] , Geolog, boost[f].split('|')[1]);
+					DATA.planet[f].resource.prod.m = prodMetal(   DATA.planet[f].building['mmet'], speedUni, DATA.techno['plas'] , Geolog, boost[f].split('|')[0], DATA.planet[f].fleet['craw']);
+					DATA.planet[f].resource.prod.c = prodCristal( DATA.planet[f].building['mcri'], speedUni, DATA.techno['plas'] , Geolog, boost[f].split('|')[1], DATA.planet[f].fleet['craw']);
 
 					prod[0]+= DATA.planet[f].resource.prod.m;
 					prod[1]+= DATA.planet[f].resource.prod.c;
 					prod[2]+= DATA.planet[f].resource.prod.d;
 
-					prodbrute[0] += prodMetal  ( DATA.planet[f].building['mmet'], speedUni, DATA.techno['plas'] , 1 , 0);
-					prodbrute[1] += prodCristal( DATA.planet[f].building['mcri'], speedUni, DATA.techno['plas'] , 1 , 0);
-					prodbrute[2] += prodDeut   ( DATA.planet[f].building['mdet'], speedUni, DATA.techno['plas'] ,DATA.planet[f].resource.temp, 1 , 0);
+					prodbrute[0] += prodMetal  ( DATA.planet[f].building['mmet'], speedUni, DATA.techno['plas'] , 1 , 0, 0);
+					prodbrute[1] += prodCristal( DATA.planet[f].building['mcri'], speedUni, DATA.techno['plas'] , 1 , 0, 0);
+					prodbrute[2] += prodDeut   ( DATA.planet[f].building['mdet'], speedUni, DATA.techno['plas'] ,DATA.planet[f].resource.temp, 1 , 0, 0);
 					//console.log(DATA.planet[f].building['mdet']+"--"+speedUni+"--"+DATA.techno['plas']+"--"+DATA.planet[f].resource.temp);
 
 					if( BatRes_const[f].split('|')[1] > start_time && BatRes_const[f].split('|')[0] == "mmet")
 					{
-						prodConstructing[0] += prodMetal(parseInt(DATA.planet[f].building['mmet'])+1  ,speedUni, lvlplasma , Geolog, boost[f].split('|')[0]);
+						prodConstructing[0] += prodMetal(parseInt(DATA.planet[f].building['mmet'])+1  ,speedUni, lvlplasma , Geolog, boost[f].split('|')[0], DATA.planet[f].fleet['craw']);
 					}
 					else
 					{
-						prodConstructing[0] += prodMetal(parseInt(DATA.planet[f].building['mmet'])  ,speedUni, lvlplasma , Geolog, boost[f].split('|')[0]);
+						prodConstructing[0] += prodMetal(parseInt(DATA.planet[f].building['mmet'])  ,speedUni, lvlplasma , Geolog, boost[f].split('|')[0], DATA.planet[f].fleet['craw']);
 					}
 
 
 					if( BatRes_const[f].split('|')[1] > start_time && BatRes_const[f].split('|')[0] == "mcri")
 					{
-						prodConstructing[1] += prodCristal(parseInt(DATA.planet[f].building['mcri'])+1 , speedUni, lvlplasma , Geolog, boost[f].split('|')[1]);
+						prodConstructing[1] += prodCristal(parseInt(DATA.planet[f].building['mcri'])+1 , speedUni, lvlplasma , Geolog, boost[f].split('|')[1], DATA.planet[f].fleet['craw']);
 					}
 					else
 					{
-						prodConstructing[1] += prodCristal(parseInt(DATA.planet[f].building['mcri'])  ,speedUni, lvlplasma , Geolog, boost[f].split('|')[1]);
+						prodConstructing[1] += prodCristal(parseInt(DATA.planet[f].building['mcri'])  ,speedUni, lvlplasma , Geolog, boost[f].split('|')[1], DATA.planet[f].fleet['craw']);
 					}
 
 
 					if( BatRes_const[f].split('|')[1] > start_time && BatRes_const[f].split('|')[0] == "mdet" )
-						prodConstructing[2] += prodDeut(parseInt(DATA.planet[f].building[BatRes_const[f].split('|')[0]])+1,speedUni, lvlplasma, DATA.planet[f].resource.temp ,	Geolog, boost[f].split('|')[2]);
+						prodConstructing[2] += prodDeut(parseInt(DATA.planet[f].building[BatRes_const[f].split('|')[0]])+1,speedUni, lvlplasma, DATA.planet[f].resource.temp ,	Geolog, boost[f].split('|')[2], DATA.planet[f].fleet['craw']);
 					else
 						prodConstructing[2] += DATA.planet[f].resource.prod.d;
 
@@ -3879,9 +3892,10 @@ function InfoCompteScript()
 						}
 						compteur++;
 
-						prod_m_total += prodMetal(mm, speedUni, lvlplasma, 1, 0)   + 30*speedUni;
-						prod_c_total += prodCristal(mc, speedUni, lvlplasma, 1, 0) + 15*speedUni;
-						prod_d_total += prodDeut(md, speedUni, lvlplasma, temperature, 1, 0);
+                        //TODO: Crawler integration ?
+						prod_m_total += prodMetal(mm, speedUni, lvlplasma, 1, 0, 0)   + 30*speedUni;
+						prod_c_total += prodCristal(mc, speedUni, lvlplasma, 1, 0, 0) + 15*speedUni;
+						prod_d_total += prodDeut(md, speedUni, lvlplasma, temperature, 1, 0, 0);
 
 						point_m_total += Math.floor((75 *  (1 - Math.pow(1.5, mm) / (-(1.5-1))))/1000);
 						point_c_total += Math.floor((72 *  (1 - Math.pow(1.6, mc) / (-(1.6-1))))/1000);
@@ -4119,7 +4133,7 @@ function InfoCompteScript()
 					if( !techTree)
 					{
 
-						 affiche += '<a href="'+url.replace('overview','techtree&tab=3&techID=1')+'" target="_blank" >Techtree</a><br/>';
+						 affiche += '<a href="'+url.replace('ingame&component=overview','ajax&component=technologytree&tab=3&techID=1')+'" target="_blank" >Techtree</a><br/>';
 					}
 					else
 					{	if (manqueMine !='') {affiche += text.Ressource+' : '+manqueMine+'<br/>';}
@@ -4300,7 +4314,7 @@ function InfoCompteScript()
 							lvlm += 1;
 						}
 						var prix_mine_taux = getPrix_mine_taux(0, lvlm);
-						return prix_mine_taux/((prodMetal  (lvlm+1,speedUni, lvlplasma, Geolog, options.generale.useBoost ? DATA.planet[numeroPlanet].booster.met : 0) - prodMetal  (lvlm,speedUni, lvlplasma  , Geolog, options.generale.useBoost ? DATA.planet[numeroPlanet].booster.met:0))*taux[2]/taux[0]) ;
+						return prix_mine_taux/((prodMetal  (lvlm+1,speedUni, lvlplasma, Geolog, options.generale.useBoost ? DATA.planet[numeroPlanet].booster.met : 0, DATA.planet[numeroPlanet].fleet['craw']) - prodMetal  (lvlm,speedUni, lvlplasma  , Geolog, options.generale.useBoost ? DATA.planet[numeroPlanet].booster.met:0, DATA.planet[numeroPlanet].fleet['craw']))*taux[2]/taux[0]) ;
 					}
 					if( type == 'mcri')
 					{
@@ -4310,7 +4324,7 @@ function InfoCompteScript()
 							lvlm += 1;
 						}
 						var prix_mine_taux = getPrix_mine_taux(1, lvlm);
-						return prix_mine_taux/((prodCristal(lvlm+1,speedUni, lvlplasma, Geolog, options.generale.useBoost ? DATA.planet[numeroPlanet].booster.cri:0)  - prodCristal(lvlm,speedUni, lvlplasma  , Geolog, options.generale.useBoost ? DATA.planet[numeroPlanet].booster.cri:0))*taux[2]/taux[1]) ;
+						return prix_mine_taux/((prodCristal(lvlm+1,speedUni, lvlplasma, Geolog, options.generale.useBoost ? DATA.planet[numeroPlanet].booster.cri:0, DATA.planet[numeroPlanet].fleet['craw'])  - prodCristal(lvlm,speedUni, lvlplasma  , Geolog, options.generale.useBoost ? DATA.planet[numeroPlanet].booster.cri:0, DATA.planet[numeroPlanet].fleet['craw']))*taux[2]/taux[1]) ;
 					}
 					if( type == 'mdet')
 					{
@@ -4320,7 +4334,7 @@ function InfoCompteScript()
 							lvlm += 1;
 						}
 						var prix_mine_taux = getPrix_mine_taux(2, lvlm);
-						return prix_mine_taux/((prodDeut   (lvlm+1,speedUni, lvlplasma, temperature, Geolog, options.generale.useBoost ? DATA.planet[numeroPlanet].booster.det:0) - prodDeut   (lvlm,speedUni, lvlplasma, temperature, Geolog, options.generale.useBoost ? DATA.planet[numeroPlanet].booster.det:0))/taux[2]);
+						return prix_mine_taux/((prodDeut   (lvlm+1,speedUni, lvlplasma, temperature, Geolog, options.generale.useBoost ? DATA.planet[numeroPlanet].booster.det:0, DATA.planet[numeroPlanet].fleet['craw']) - prodDeut   (lvlm,speedUni, lvlplasma, temperature, Geolog, options.generale.useBoost ? DATA.planet[numeroPlanet].booster.det:0, DATA.planet[numeroPlanet].fleet['craw']))/taux[2]);
 					}
 				}
 				function hourToyear(heure)
@@ -4399,17 +4413,17 @@ function InfoCompteScript()
 					//console.log(prix_plasma_taux_next_lvl/supp_prod_taux_plasma == Number.POSITIVE_INFINITY || prix_plasma_taux_next_lvl/supp_prod_taux_plasma == Number.NEGATIVE_INFINITY);
 					return prix_plasma_taux_next_lvl/supp_prod_taux_plasma;
 				}
-				function prodSuivante( type , temperature, lvlm, booster )
+				function prodSuivante( type , temperature, lvlm, booster, crawler )
 				{
 					//'mmet', 'mcri' , 'mdet'
 					if( type == 0)
-						return (prodMetal  (lvlm+1,speedUni, lvlplasma, Geolog, booster)   - prodMetal  (lvlm,speedUni, lvlplasma  , Geolog, booster))*taux[2]/taux[0] ;
+						return (prodMetal  (lvlm+1,speedUni, lvlplasma, Geolog, booster, crawler)   - prodMetal  (lvlm,speedUni, lvlplasma  , Geolog, booster, crawler))*taux[2]/taux[0] ;
 
 					if( type == 1)
-						return (prodCristal(lvlm+1,speedUni, lvlplasma, Geolog, booster)   - prodCristal(lvlm,speedUni, lvlplasma  , Geolog, booster))*taux[2]/taux[1] ;
+						return (prodCristal(lvlm+1,speedUni, lvlplasma, Geolog, booster, crawler)   - prodCristal(lvlm,speedUni, lvlplasma  , Geolog, booster, crawler))*taux[2]/taux[1] ;
 
 					if( type == 2)
-						return (prodDeut   (lvlm+1,speedUni, lvlplasma, temperature, Geolog, booster) - prodDeut   (lvlm,speedUni, lvlplasma  , temperature, Geolog, booster))/taux[2];
+						return (prodDeut   (lvlm+1,speedUni, lvlplasma, temperature, Geolog, booster, crawler) - prodDeut   (lvlm,speedUni, lvlplasma  , temperature, Geolog, booster, crawler))/taux[2];
 				}
 				function  cumulprix( cumulprixMetal, cumulprixCristal, type, lvl)//le deut n'intervient pas dans le prix
 				{
@@ -4615,9 +4629,9 @@ function InfoCompteScript()
 								var prixmtc = getPrix_mine_taux(1, Planet[f].c);
 								var prixmtd = getPrix_mine_taux(2, Planet[f].d);
 
-								var prodsm = prodSuivante( 0 , Planet[f].t , Planet[f].m, options.generale.useBoost ? Planet[f].boosm:0 );
-								var prodsc = prodSuivante( 1 , Planet[f].t , Planet[f].c, options.generale.useBoost ? Planet[f].boosc:0 );
-								var prodsd = prodSuivante( 2 , Planet[f].t , Planet[f].d, options.generale.useBoost ? Planet[f].boosd:0 );
+								var prodsm = prodSuivante( 0 , Planet[f].t , Planet[f].m, options.generale.useBoost ? Planet[f].boosm:0, DATA.planet[f].fleet['craw'] );
+								var prodsc = prodSuivante( 1 , Planet[f].t , Planet[f].c, options.generale.useBoost ? Planet[f].boosc:0, DATA.planet[f].fleet['craw'] );
+								var prodsd = prodSuivante( 2 , Planet[f].t , Planet[f].d, options.generale.useBoost ? Planet[f].boosd:0, DATA.planet[f].fleet['craw'] );
 
 								var rm = prixmtm / prodsm ;
 								var rc = prixmtc / prodsc ;
